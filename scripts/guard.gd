@@ -1,12 +1,6 @@
-# ORIGIN: NEW, written by team. Art: hamster meme drawings supplied by the team.
-# GUARD = a rival buyer standing in line for the game. Walks back and forth, hurts on touch.
-#   kind "lolli": 2 HP, slow           (lollipop hamster)
-#   kind "smug":  3 HP, faster         (smug hamster)
-#   kind "flame": 5 HP, hops at you    (flame hamster, elite)
-# Hit with the nail or shots; pogo off their heads.
 extends Node2D
 
-const Look = preload("res://scripts/look.gd")   # shared outline style
+const Look = preload("res://scripts/look.gd")
 const Navigation = preload("res://scripts/enemy_navigation.gd")
 
 const KILLZONE_SCENE = preload("res://scenes/killzone.tscn")
@@ -17,7 +11,7 @@ const STATS := {
 }
 
 var kind := "lolli"
-var dir := 1.0 # preserve the old effective startup heading, without a cold-ray flip
+var dir := 1.0
 var vel_y := 0.0
 var hop_t := 1.5
 var sprite: Sprite2D
@@ -26,7 +20,7 @@ var _warmup := 2
 
 
 func _ready() -> void:
-	add_to_group("enemy_target")   # bounced-back price tags home in on these
+	add_to_group("enemy_target")
 	var s: Dictionary = STATS[kind]
 	set_meta("hp", s.hp)
 	var tex: Texture2D = load("res://assets/hamsters/%s.png" % kind)
@@ -37,7 +31,7 @@ func _ready() -> void:
 	sprite.offset = Vector2(0, -tex.get_height() / 2.0)
 	add_child(sprite)
 	Look.outline(sprite, 0.8)
-	# hurt box (Brackeys killzone) -> touching costs a mask
+
 	var kz = KILLZONE_SCENE.instantiate()
 	var shape := CollisionShape2D.new()
 	var r := RectangleShape2D.new()
@@ -52,7 +46,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if has_meta("dying"):
 		return
-	# Let newly built TileMap collision enter the physics world before patrolling.
+
 	if _warmup > 0:
 		_warmup -= 1
 		return
@@ -75,7 +69,7 @@ func _physics_process(delta: float) -> void:
 				vel_y = -230.0
 				grounded = false
 			else:
-				hop_t = 0.35 # reconsider if the player moves; never hop blindly into a pit
+				hop_t = 0.35
 	if grounded:
 		var step := Navigation.walk(self, dir, s.speed * delta, s.height)
 		global_position = step.position
@@ -87,14 +81,14 @@ func _physics_process(delta: float) -> void:
 		global_position = step.position
 		vel_y = step.velocity.y
 	sprite.flip_h = dir > 0
-	# waddle
+
 	var w := 1.0 + sin(t * 10.0) * 0.06
 	var base: float = s.height / sprite.texture.get_height()
 	sprite.scale = Vector2(base * w, base / w)
 
 
 func take_knockback(distance: float) -> void:
-	# Hits follow the same terrain checks as walking, so guards stay on their ledge.
+
 	var step := Navigation.walk(self, signf(distance), absf(distance), STATS[kind].height, false)
 	global_position = step.position
 

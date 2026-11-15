@@ -1,16 +1,12 @@
-# ORIGIN: NEW, written by team.
-# ENEMY SHOT: a thrown price tag ($$$ scalper prices). Hurts the first player it touches.
-# BOUNCE IT BACK: strike it with your nail and it flies back, gold and twice as fast,
-# smashing the first enemy it hits (power 2 = breaks the Godfather's armor too).
 extends Node2D
 
 const FONT = preload("res://assets/fonts/PixelOperator8-Bold.ttf")
 var velocity := Vector2.ZERO
 var life := 2.5
 var spin := 0.0
-var gravity := 0.0          # > 0 makes it arc (the Godfather lobs his tags)
+var gravity := 0.0
 var reflected := false
-var power := 2              # used by damage code when a bounced-back tag hits
+var power := 2
 var armor_break := true
 var by_player: Node2D = null
 
@@ -19,7 +15,6 @@ func _ready() -> void:
 	add_to_group("enemy_shot")
 
 
-# Called by the player's nail attack
 func reflect(p: Node2D) -> void:
 	if reflected:
 		return
@@ -66,7 +61,7 @@ func _physics_process(delta: float) -> void:
 		return
 	var gm = get_tree().get_first_node_in_group("game_manager")
 	if reflected:
-		# smash the first enemy we touch
+
 		var query := PhysicsShapeQueryParameters2D.new()
 		var circle := CircleShape2D.new()
 		circle.radius = 10.0

@@ -1,6 +1,5 @@
-# ORIGIN: NEW, written by team.
 extends CanvasLayer
-## Observes every player after movement without modifying gameplay or damage rules.
+
 const FONT = preload("res://assets/fonts/PixelOperator8-Bold.ttf")
 var flash: ColorRect
 var effects: Node2D
@@ -10,7 +9,7 @@ var _flash_tween: Tween
 
 func _ready() -> void:
 	layer = 80
-	# Later physics callbacks see the launch velocity assigned by player.gd.
+
 	process_physics_priority = 100
 	flash = ColorRect.new()
 	flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -94,7 +93,7 @@ func _particles(pos: Vector2, amount: int, color: Color, lifetime: float) -> voi
 	puff.color = color
 	effects.add_child(puff)
 	puff.emitting = true
-	# Timer also frees particles on headless renderers where finished can be delayed.
+
 	var timer := get_tree().create_timer(lifetime + 0.15, false)
 	timer.timeout.connect(func():
 		if is_instance_valid(puff):

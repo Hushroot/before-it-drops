@@ -1,7 +1,6 @@
-# ORIGIN: NEW, written by team. No generated textures or gameplay edits.
 extends Node2D
-## Animate the existing frame's legs around the hips while preserving the upper pose.
-## The original sprite handles every non-walking state, including combat and death.
+
+
 const STRIDE_DISTANCE := 52.0
 var phase := 0.0
 var walking := false
@@ -13,7 +12,7 @@ func _ready() -> void:
 	sprite = get_parent() as AnimatedSprite2D
 	player = sprite.get_parent() as CharacterBody2D
 	_original_alpha = sprite.self_modulate.a
-	use_parent_material = true # retain the team's outline and hit/invulnerability tint
+	use_parent_material = true
 	hide()
 
 func _process(delta: float) -> void:
@@ -39,7 +38,7 @@ func _draw() -> void:
 	var waist := floorf(size.y * 0.60)
 	var half := floorf(size.x * 0.5)
 	var offset := Vector2(-size.x * 0.5, -size.y)
-	# Draw the legs first. The torso overlaps their top two pixels to hide seams.
+
 	for leg in 2:
 		var wave := sin(phase + PI * leg)
 		var source := Rect2(half * leg, waist, half if leg == 0 else size.x - half, size.y - waist)

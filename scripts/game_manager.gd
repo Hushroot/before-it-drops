@@ -1,28 +1,23 @@
-# ORIGIN: Brackeys tutorial (human-written): score + add_point().
-# MODIFIED BY TEAM: Hollow Knight-style systems:
-#   MASKS (health), GEO (coins), BENCHES (checkpoint + heal), hazard respawn,
-#   enemy HP, and THE TWIST: when you die, your body stays as a BOUNCE PAD holding your geo.
-#   Hit your body with the nail (or pogo it) to get your geo back. Bounce back!
 extends Node
 
-const Look = preload("res://scripts/look.gd")   # shared outline style
+const Look = preload("res://scripts/look.gd")
 
 const BodyPad = preload("res://scripts/body_pad.gd")
 const ViceLayer = preload("res://scripts/vice_layer.gd")
 const Characters = preload("res://scripts/characters.gd")
 const FONT = preload("res://assets/fonts/PixelOperator8-Bold.ttf")
-const MAX_BODIES := 25
+const MAX_BODIES := 3
 const MAX_MASKS := 5
 const ENEMY_HP := 2
 
-var score = 0                 # = GEO (Brackeys coins)
+var score = 0
 var deaths := 0
 var respawn_point := Vector2.ZERO
 var dead := false
-var player: CharacterBody2D   # player 1 (single player = the only one)
-var players: Array = []       # everyone (BOSS RAID co-op = up to 3)
+var player: CharacterBody2D
+var players: Array = []
 
-# masks live on each player; these read/write player 1 (single-player code and tests use them)
+
 var masks: int:
 	get:
 		return player.pmasks if player else MAX_MASKS
@@ -36,9 +31,9 @@ var bodies: Array = []
 var hud: Control
 var geo_label: Label
 var death_label: Label
-var last_drop := 0            # geo dropped at the last death
-var heat := 0.0               # SLIME ALERT: goes up when you fight, cools down over time
-var soul := 0.0               # SOUL (Hollow Knight): +11 per nail hit, power shot costs 33
+var death_notifications: VBoxContainer
+var heat := 0.0
+var soul := 0.0
 
 @onready var score_label = $ScoreLabel
 
@@ -46,9 +41,9 @@ var soul := 0.0               # SOUL (Hollow Knight): +11 per nail hit, power sh
 func _ready():
 	add_to_group("game_manager")
 	_build_hud()
-	Look.add_grade(self)                   # one Vice Slime color grade over every level
-	add_child(ViceLayer.new())             # GTA VI parody layer (stars, BOUNCED, MISSION PASSED)
-	await get_tree().process_frame          # wait for the whole level to load
+	Look.add_grade(self)
+	add_child(ViceLayer.new())
+	await get_tree().process_frame
 	if not is_inside_tree():
 		return
 	refresh_players()
@@ -73,7 +68,6 @@ func add_point():
 	_update_hud()
 
 
-# BENCH: respawn here + full heal
 func set_checkpoint(pos: Vector2) -> void:
 	respawn_point = pos
 	for p in players:
@@ -82,11 +76,10 @@ func set_checkpoint(pos: Vector2) -> void:
 	_toast("BENCH: RESTED")
 
 
-# ---------------- DAMAGE ----------------
 func player_hit(from_pos: Vector2, hazard := false, who = null) -> void:
 	if who == null:
 		who = player
-	# (Mazen's fix) pits/hazards still count during hit immunity, or you'd fall forever
+
 	if who == null or who.is_dead or who.has_meta("spawn_guard") or (who.invuln > 0.0 and not hazard):
 		return
 	who.pmasks -= 1
@@ -97,7 +90,7 @@ func player_hit(from_pos: Vector2, hazard := false, who = null) -> void:
 		return
 	who.take_hit(from_pos)
 	if hazard:
-		# Hollow Knight hazard respawn: back to the last safe ground
+
 		who.controllable = false
 		await get_tree().create_timer(0.35).timeout
 		if is_instance_valid(who) and not who.is_dead:
@@ -113,26 +106,26 @@ func player_died(leave_body := true, who = null) -> void:
 	deaths += 1
 	var where: Vector2 = who.global_position
 	if who.global_position.y > who.last_safe.y + 60.0:
-		where = who.last_safe         # died falling into a pit: body appears at the edge
+		where = who.last_safe
 	var facing_left: bool = who.animated_sprite.flip_h
 	var dropped: int = score
-	last_drop = dropped
 	score = 0
 	who.die()
+	_notify_death(who)
 	_update_hud()
 	_shake(8.0)
 	Engine.time_scale = 0.5
-	await get_tree().create_timer(0.3).timeout   # 0.6 s of slow-mo
+	await get_tree().create_timer(0.3).timeout
 	Engine.time_scale = 1.0
 	if leave_body:
 		_spawn_body(where, facing_left, dropped, who)
 	if players.size() > 1:
-		await get_tree().create_timer(1.2).timeout   # co-op: short wait, then bounce back at the bench
+		await get_tree().create_timer(1.2).timeout
 	who.pmasks = who.pmax
 	who.set_meta("spawn_guard", true)
 	who.respawn(respawn_point + Vector2(who.player_index * 14, 0))
 	_update_hud()
-	# (Mazen's fix) keep damage blocked until the teleported player's collider has synced
+
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	await get_tree().process_frame
@@ -158,7 +151,6 @@ func _spawn_body(pos: Vector2, facing_left: bool, geo: int, who = null) -> void:
 		bodies.pop_front().queue_free()
 
 
-# Hit your old body with the nail = take your geo back
 func reclaim_geo(body) -> void:
 	if body.geo <= 0:
 		return
@@ -169,7 +161,6 @@ func reclaim_geo(body) -> void:
 	_update_hud()
 
 
-# ---------------- ENEMIES ----------------
 func hit_enemy(enemy: Node, by: Node2D) -> void:
 	if not is_instance_valid(enemy) or enemy.has_meta("dying"):
 		return
@@ -179,13 +170,12 @@ func hit_enemy(enemy: Node, by: Node2D) -> void:
 	if by.is_in_group("player"):
 		soul = minf(soul + 11.0, 99.0)
 		_update_hud()
-	if enemy.has_method("on_nail_hit"):     # bosses / special enemies handle their own damage
+	if enemy.has_method("on_nail_hit"):
 		enemy.on_nail_hit(by)
 		return
 	damage_enemy(enemy, by)
 
 
-# Default damage for normal enemies (special enemies call this from their own on_nail_hit)
 func damage_enemy(enemy: Node, by: Node2D) -> void:
 	if not is_instance_valid(enemy) or enemy.has_meta("dying"):
 		return
@@ -207,7 +197,7 @@ func damage_enemy(enemy: Node, by: Node2D) -> void:
 	if hp <= 0:
 		enemy.set_meta("dying", true)
 		Sfx.play("enemy_down", -4.0, 0.0)
-		score += 2                                   # enemies drop geo
+		score += 2
 		_update_hud()
 		_shake(3.0)
 		var t2 := enemy.create_tween()
@@ -215,10 +205,9 @@ func damage_enemy(enemy: Node, by: Node2D) -> void:
 		t2.tween_callback(enemy.queue_free)
 
 
-# ---------------- HUD (masks + geo + deaths) ----------------
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
-	layer.layer = 2          # above the Vice color grade (layer 1)
+	layer.layer = 2
 	add_child(layer)
 	hud = Control.new()
 	hud.position = Vector2(12, 10)
@@ -228,7 +217,49 @@ func _build_hud() -> void:
 	layer.add_child(geo_label)
 	death_label = _make_label(16, Vector2(12, 56))
 	layer.add_child(death_label)
+	var notification_root := Control.new()
+	notification_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	notification_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(notification_root)
+	death_notifications = VBoxContainer.new()
+	notification_root.add_child(death_notifications)
+	death_notifications.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	death_notifications.offset_left = -292
+	death_notifications.offset_right = -12
+	death_notifications.offset_top = 84
+	death_notifications.add_theme_constant_override("separation", 6)
+	death_notifications.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_update_hud()
+
+
+func _notify_death(who: CharacterBody2D) -> void:
+	if death_notifications == null:
+		return
+
+	while death_notifications.get_child_count() >= 3:
+		var oldest := death_notifications.get_child(0)
+		death_notifications.remove_child(oldest)
+		oldest.queue_free()
+	var notice := PanelContainer.new()
+	notice.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.07, 0.09, 0.9)
+	style.border_color = Color(0.95, 0.3, 0.35)
+	style.border_width_left = 3
+	style.content_margin_left = 12
+	style.content_margin_right = 12
+	style.content_margin_top = 10
+	style.content_margin_bottom = 10
+	notice.add_theme_stylebox_override("panel", style)
+	var label := _make_label(12, Vector2.ZERO)
+	label.text = "Player %d died." % (who.player_index + 1) if players.size() > 1 else "You died."
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	notice.add_child(label)
+	death_notifications.add_child(notice)
+	var tw := notice.create_tween()
+	tw.tween_interval(2.5)
+	tw.tween_property(notice, "modulate:a", 0.0, 0.25)
+	tw.tween_callback(notice.queue_free)
 
 
 func _make_label(size: int, pos: Vector2) -> Label:

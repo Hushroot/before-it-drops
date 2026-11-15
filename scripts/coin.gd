@@ -1,6 +1,3 @@
-# ORIGIN: Brackeys tutorial (public domain).
-# MODIFIED BY TEAM: find the manager in generated story levels,
-# and award each coin once while its pickup animation finishes.
 extends Area2D
 
 @onready var game_manager = get_tree().get_first_node_in_group("game_manager")

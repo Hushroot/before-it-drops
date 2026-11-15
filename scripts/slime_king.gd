@@ -1,10 +1,6 @@
-# ORIGIN: NEW, written by team. Sprite = Brackeys slime (CC0), scaled + tinted.
-# THE HAMSTER GODFATHER (boss): the scalper who bought every copy of the game.
-# (Originally the Slime King.) You can ONLY hurt him by pogoing on his head (down-slash from above).
-# Side hits just CLANK off. He hops at you and slams the ground; in phase 2 he spawns slimes.
 extends Node2D
 
-const Look = preload("res://scripts/look.gd")   # shared outline style
+const Look = preload("res://scripts/look.gd")
 
 const SLIME_SCENE = preload("res://scenes/slime.tscn")
 const KILLZONE_SCENE = preload("res://scenes/killzone.tscn")
@@ -14,16 +10,15 @@ const Portrait = preload("res://scripts/boss_portrait.gd")
 
 const MAX_HP := 10
 const GRAVITY := 900.0
-const SIZE := 3.5           # hitbox scale (kept from the slime version)
+const SIZE := 3.5
 const BODY_TEX = preload("res://assets/hamsters/godfather.png")
 const MINION_GUARD = "lolli"
-const EnemyShot = preload("res://scripts/enemy_shot.gd")   # he lobs $$$ price tags: bounce them back!
-const Guard = preload("res://scripts/guard.gd")   # phase 2 spawns lollipop hamsters
+const EnemyShot = preload("res://scripts/enemy_shot.gd")
+const Guard = preload("res://scripts/guard.gd")
 
-# FINAL BOSS (optional): drop your own picture at FINAL_BOSS_TEX and set FINAL_BOSS_NAME.
-# If the picture exists, beating the Godfather starts a second, harder fight against it.
+
 const FINAL_BOSS_TEX := "res://assets/boss/final/body.png"
-const FINAL_BOSS_PORTRAIT := "res://assets/boss/final/portrait.png"   # optional (falls back to body.png)
+const FINAL_BOSS_PORTRAIT := "res://assets/boss/final/portrait.png"
 const FINAL_BOSS_NAME := "THE VICE QUEEN"
 const FINAL_BOSS_LINE := "\"THE LAST COPY? IT WAS ALWAYS MINE.\""
 
@@ -54,7 +49,7 @@ var player
 
 
 func _ready() -> void:
-	add_to_group("enemy_target")   # bounced-back price tags home in on these
+	add_to_group("enemy_target")
 	if is_final:
 		boss_name = FINAL_BOSS_NAME
 		body_tex = load(FINAL_BOSS_TEX)
@@ -68,15 +63,15 @@ func _ready() -> void:
 	sf.add_frame("default", body_tex)
 	sprite.sprite_frames = sf
 	sprite.scale = Vector2(SIZE, SIZE)
-	sprite.offset = Vector2(0, -body_tex.get_height() / 2.0)   # squash from the feet
+	sprite.offset = Vector2(0, -body_tex.get_height() / 2.0)
 	sprite.play()
-	var holder := Node2D.new()           # shrinks the 256 px drawing to about 84 px tall
+	var holder := Node2D.new()
 	holder.scale = Vector2.ONE * (24.0 / body_tex.get_height())
 	holder.position = Vector2(0, 4)
 	add_child(holder)
 	holder.add_child(sprite)
 	Look.outline(sprite, 1.0)
-	# contact damage (reuses the Brackeys killzone)
+
 	var kz = KILLZONE_SCENE.instantiate()
 	var shape := CollisionShape2D.new()
 	var circle := CircleShape2D.new()
@@ -94,7 +89,6 @@ func _ready() -> void:
 	player = get_tree().get_first_node_in_group("player")
 
 
-# Same animation as the Brackeys slime, but using the purple slime sheet from the bundle
 func _purple_frames(src: SpriteFrames) -> SpriteFrames:
 	var purple: Texture2D = load("res://assets/sprites/slime_purple.png")
 	var out := SpriteFrames.new()
@@ -135,7 +129,7 @@ func _physics_process(delta: float) -> void:
 
 	match state:
 		"sleep":
-			# wakes up when you get close
+
 			if absf(to_player) < 170.0:
 				_toast((boss_name + ": " + FINAL_BOSS_LINE) if is_final else "THE HAMSTER GODFATHER: \"THE LAST COPY IS MINE.\"  (Strike his $$$ tags back at him!)", Color(0.85, 0.55, 1.0))
 				portrait.react("smug", 1.5)
@@ -156,7 +150,7 @@ func _physics_process(delta: float) -> void:
 				position.y = floor_y
 				_slam()
 
-	# squash a little while idle so he looks alive
+
 	if state == "idle":
 		var s := 1.0 + sin(Time.get_ticks_msec() / 120.0) * 0.04
 		sprite.scale = Vector2(SIZE * s, SIZE / s)
@@ -169,7 +163,7 @@ func _hop(to_player: float) -> void:
 	var air_time := 0.9 if not p2 else 0.75
 	vel = Vector2(dist / air_time, -GRAVITY * air_time * 0.5)
 	if p2 and randf() < 0.35:
-		vel.y *= 1.35        # big leap
+		vel.y *= 1.35
 	sprite.scale = Vector2(SIZE * 1.3, SIZE * 0.7)
 	create_tween().tween_property(sprite, "scale", Vector2(SIZE * 0.85, SIZE * 1.2), 0.15)
 
@@ -184,12 +178,12 @@ func _slam() -> void:
 	portrait.react("angry", 0.4)
 	if gm:
 		gm._shake(6.0)
-	# shockwave: hurts anyone on the ground nearby (jump over it!)
+
 	for p in get_tree().get_nodes_in_group("player"):
 		if not p.is_dead and p.is_on_floor() and absf(p.global_position.x - global_position.x) < 90.0:
 			gm.player_hit(global_position, false, p)
 	_dust()
-	# scalper prices: lob price tags at the players (strike them back to break his armor)
+
 	var tags := 1 if phase() == 1 else 2
 	for i in tags:
 		var target = _nearest_player()
@@ -203,12 +197,12 @@ func _slam() -> void:
 		shot.velocity = Vector2(clampf(dx / 1.1, -260.0, 260.0), -150.0)
 		get_parent().add_child(shot)
 		Sfx.play("throw", -6.0)
-	# phase 2: spawn slimes
+
 	minions = minions.filter(func(m): return is_instance_valid(m))
 	if phase() == 2 and minions.size() < 3 and randf() < 0.6:
 		var m = Guard.new()
 		m.kind = MINION_GUARD
-		m.position = Vector2((left_x + right_x) / 2.0 + randf_range(-10, 10), floor_y)   # they walk out of the store door
+		m.position = Vector2((left_x + right_x) / 2.0 + randf_range(-10, 10), floor_y)
 		_toast("BACKUP OUT OF THE STORE!", Color(1, 0.6, 0.85))
 		get_parent().add_child(m)
 		minions.append(m)
@@ -227,15 +221,14 @@ func _nearest_player():
 	return best
 
 
-# Called by game_manager when the nail hits the king
 func on_nail_hit(by: Node2D) -> void:
 	if dead:
 		return
 	var from_above: bool = by.global_position.y < global_position.y - 9.0 * SIZE
 	var power: int = by.get("power") if by.get("power") != null else 1
-	var brute: bool = (power > 1 or by.get("armor_break") == true) and not from_above     # ZOOM / power shots break his armor
+	var brute: bool = (power > 1 or by.get("armor_break") == true) and not from_above
 	if not from_above and not brute:
-		# CLANK: armor is too thick from the side
+
 		sfx_clank.pitch_scale = 0.6
 		sfx_clank.play()
 		_toast("CLANK! Strike from above!", Color.WHITE)
@@ -291,7 +284,7 @@ func _die() -> void:
 	if chain_final:
 		_toast("BUT WAIT... " + FINAL_BOSS_NAME + " WANTS THE LAST COPY TOO", Color(1, 0.5, 0.8))
 		if gm:
-			for p in gm.players:            # everyone gets a fresh start for the last fight
+			for p in gm.players:
 				p.pmasks = p.pmax
 			gm._update_hud()
 		await get_tree().create_timer(2.0).timeout
@@ -309,7 +302,6 @@ func _die() -> void:
 	e.play(gm, player)
 
 
-# ---------------- visuals ----------------
 func _dust() -> void:
 	var p := CPUParticles2D.new()
 	p.position = position
@@ -359,7 +351,7 @@ func _build_bar() -> void:
 	if is_final:
 		var ptex: Texture2D = load(FINAL_BOSS_PORTRAIT) if ResourceLoader.exists(FINAL_BOSS_PORTRAIT) else body_tex
 		for m in portrait.MOODS:
-			var mp := "res://assets/boss/final/portrait_%s.png" % m      # one face per mood if the team drew it
+			var mp := "res://assets/boss/final/portrait_%s.png" % m
 			portrait.art[m] = load(mp) if ResourceLoader.exists(mp) else ptex
 	_update_bar()
 

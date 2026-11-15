@@ -1,9 +1,6 @@
-# ORIGIN: Brackeys tutorial (human-written, public domain). Movement, gravity, jump, animations = Brackeys.
-# MODIFIED BY TEAM: Hollow Knight-style moves: nail attack (side/up/down),
-# POGO (down-slash bounces you), dash, masks/knockback, hazard respawn, bouncing on old bodies.
 extends CharacterBody2D
 
-const Look = preload("res://scripts/look.gd")   # shared outline style
+const Look = preload("res://scripts/look.gd")
 
 const Characters = preload("res://scripts/characters.gd")
 const Projectile = preload("res://scripts/projectile.gd")
@@ -12,16 +9,16 @@ const SOUL_COST := 33.0
 
 const SPEED = 130.0
 const JUMP_VELOCITY = -300.0
-const BOUNCE_VELOCITY = -420.0     # landing on one of your old bodies
-const BOUNCE_BOOST = 1.2           # hold jump while bouncing = go even higher
-const POGO_VELOCITY = -300.0       # down-slash hits something = bounce up (Hollow Knight pogo)
+const BOUNCE_VELOCITY = -420.0
+const BOUNCE_BOOST = 1.2
+const POGO_VELOCITY = -300.0
 const DASH_SPEED = 330.0
 const DASH_TIME = 0.16
 const DASH_COOLDOWN = 0.45
 const ATTACK_COOLDOWN = 0.32
 const KNOCKBACK = Vector2(160, -170)
 
-# Get the gravity from the project settings to be synced with RigidBody nodes.
+
 var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 var controllable := true
 var facing := 1
@@ -30,27 +27,27 @@ var attack_cd := 0.0
 var dash_t := 0.0
 var dash_cd := 0.0
 var can_air_dash := true
-var stun := 0.0                    # short loss of control after getting hit
-var last_safe := Vector2.ZERO      # last solid ground (for hazard respawn)
+var stun := 0.0
+var last_safe := Vector2.ZERO
 var safe_t := 0.0
-var slash_t := 0.0                 # slash effect timer
+var slash_t := 0.0
 var slash_dir := Vector2.RIGHT
-var speed_mult := 1.0              # character perks (see characters.gd)
+var speed_mult := 1.0
 var reach := 1.0
-var power := 1                     # damage per hit (ZOOM = 2)
-var custom_char := false           # true = using a chosen fighter instead of the Brackeys knight
+var power := 1
+var custom_char := false
 var base_scale := Vector2.ONE
 var attack_anim_t := 0.0
-# ---- co-op (BOSS RAID) ----
-var device := -1                   # -1 = keyboard + any pad (single player); -2 = keyboard only (co-op); 0,1,2 = one PS4 controller
-var prefix := ""                   # input action prefix for this player ("p0_" ...)
-var char_id := ""                  # fighter for this player (empty = the one picked on the select screen)
+
+var device := -1
+var prefix := ""
+var char_id := ""
 var player_index := 0
-var pmasks := 5                    # this player's masks (health)
+var pmasks := 5
 var pmax := 5
 var is_dead := false
-var special_cd := 0.0              # special skill cooldown (L / TRIANGLE)
-var charging := false              # ZOOM shoulder charge in progress
+var special_cd := 0.0
+var charging := false
 var charge_hits := {}
 
 @onready var animated_sprite = $AnimatedSprite2D
@@ -76,7 +73,6 @@ func _act(action: String) -> String:
 	return prefix + action
 
 
-# Joypad layout (PS4): stick / d-pad = move, CROSS = jump, SQUARE = attack, CIRCLE or R1 = dash
 const PAD := {
 	"move_left": [[JOY_AXIS_LEFT_X, -1.0], JOY_BUTTON_DPAD_LEFT],
 	"move_right": [[JOY_AXIS_LEFT_X, 1.0], JOY_BUTTON_DPAD_RIGHT],
@@ -104,10 +100,9 @@ static func _add_pad_events(base: String, action: String, dev: int) -> void:
 		InputMap.action_add_event(action, event)
 
 
-# Adds the extra controls (so nobody has to edit Project Settings)
 func _setup_inputs() -> void:
 	if device == -2:
-		# co-op keyboard player: keyboard only, so the pads don't move them too
+
 		prefix = "kb_"
 		var keys := {
 			"move_left": [KEY_A, KEY_LEFT],
@@ -129,7 +124,7 @@ func _setup_inputs() -> void:
 					InputMap.action_add_event(prefix + action, event)
 		return
 	if device >= 0:
-		# co-op: this player only listens to its own controller
+
 		prefix = "p%d_" % device
 		for action in PAD:
 			if not InputMap.has_action(prefix + action):
@@ -151,7 +146,7 @@ func _setup_inputs() -> void:
 				var event := InputEventKey.new()
 				event.physical_keycode = key
 				InputMap.action_add_event(action, event)
-	# single player: any controller works too
+
 	if not InputMap.has_meta("pads_added"):
 		InputMap.set_meta("pads_added", true)
 		for action in PAD:
@@ -159,7 +154,6 @@ func _setup_inputs() -> void:
 				_add_pad_events(action, action, -1)
 
 
-# Swap the Brackeys knight for the fighter picked on the select screen
 func _apply_character() -> void:
 	var fighter: Dictionary = Characters.by_id(char_id) if char_id != "" else Characters.get_selected()
 	pmax = fighter.get("masks", 5)
@@ -200,7 +194,7 @@ func _physics_process(delta):
 	if not controllable:
 		return
 
-	# DASH (Hollow Knight: Mothwing Cloak)
+
 	if dash_t > 0.0:
 		dash_t -= delta
 		velocity = Vector2(facing * DASH_SPEED * (1.15 if charging else 1.0), 0)
@@ -211,7 +205,7 @@ func _physics_process(delta):
 				charging = false
 		return
 
-	# Add the gravity.
+
 	if not is_on_floor():
 		velocity.y += gravity * delta
 	else:
@@ -222,19 +216,19 @@ func _physics_process(delta):
 		move_and_slide()
 		return
 
-	# Handle jump.
+
 	if Input.is_action_just_pressed(_act("jump")) and is_on_floor():
 		velocity.y = JUMP_VELOCITY
 		sfx_jump.pitch_scale = 1.0
 		sfx_jump.play()
-	# Variable jump height: let go of jump early = shorter jump (like Hollow Knight)
+
 	if Input.is_action_just_released(_act("jump")) and velocity.y < -120.0:
 		velocity.y = -120.0
 
-	# Get the input direction: -1, 0, 1
+
 	var direction = Input.get_axis(_act("move_left"), _act("move_right"))
 
-	# Flip the Sprite
+
 	if direction > 0:
 		animated_sprite.flip_h = false
 		facing = 1
@@ -258,7 +252,7 @@ func _physics_process(delta):
 	if Input.is_action_just_pressed(_act("power")):
 		_power_shot()
 
-	# Play animations
+
 	if custom_char and attack_anim_t > 0.0:
 		animated_sprite.play("attack")
 	elif is_on_floor():
@@ -271,7 +265,7 @@ func _physics_process(delta):
 	if custom_char:
 		Characters.fit_sprite(animated_sprite)
 
-	# Apply movement
+
 	if direction:
 		velocity.x = direction * SPEED * speed_mult
 	else:
@@ -289,11 +283,10 @@ func _track_safe_ground(delta: float) -> void:
 	for i in get_slide_collision_count():
 		var other = get_slide_collision(i).get_collider()
 		if other and other.is_in_group("bounce_pad"):
-			return   # don't count standing on bodies as safe ground
+			return
 	last_safe = global_position
 
 
-# ---------------- NAIL ATTACK ----------------
 func _attack() -> void:
 	attack_cd = ATTACK_COOLDOWN
 	var dir := Vector2(facing, 0)
@@ -340,11 +333,11 @@ func _attack() -> void:
 				gm.reclaim_geo(col)
 			col.squish()
 		elif col.get_script() and col.get_script().resource_path.ends_with("killzone.gd"):
-			hit_something = true          # spikes / enemies: pogo-able
+			hit_something = true
 			var enemy = col.get_parent()
 			if enemy != get_tree().current_scene and gm:
 				gm.hit_enemy(enemy, self)
-	# BOUNCE IT BACK: strike a price tag to send it flying into the enemy
+
 	var center := global_position + offset
 	for s in get_tree().get_nodes_in_group("enemy_shot"):
 		if (
@@ -356,17 +349,16 @@ func _attack() -> void:
 			hit_something = true
 	if hit_something:
 		if dir == Vector2.DOWN:
-			velocity.y = POGO_VELOCITY       # POGO!
+			velocity.y = POGO_VELOCITY
 			can_air_dash = true
 			invuln = maxf(invuln, 0.15)
 			sfx_bounce.pitch_scale = 1.3
 			sfx_bounce.play()
 			_squash()
 		elif dir.x != 0:
-			velocity.x = -facing * (60.0 if power > 1 else 120.0)     # nail recoil (brutes barely flinch)
+			velocity.x = -facing * (60.0 if power > 1 else 120.0)
 
 
-# ---------------- POWER SHOT (I / R2 or L1): costs 1/3 of the SOUL meter ----------------
 func _power_shot() -> void:
 	var gm = get_tree().get_first_node_in_group("game_manager")
 	if gm == null:
@@ -396,14 +388,13 @@ func _fire(dir: Vector2, dmg: int, spd: float, pierce: bool, armor: bool, r: flo
 	get_tree().current_scene.add_child(shot)
 
 
-# ---------------- SPECIAL SKILL (L / TRIANGLE): different for every fighter ----------------
 func _special() -> void:
 	if special_cd > 0.0:
 		return
 	var c: Dictionary = Characters.by_id(char_id) if char_id != "" else Characters.get_selected()
 	var gm = get_tree().get_first_node_in_group("game_manager")
 	match c.get("id", ""):
-		"spark":   # FINGER GUN: 3 quick sparks
+		"spark":
 			special_cd = 2.5
 			attack_anim_t = 0.45
 			for i in 3:
@@ -411,7 +402,7 @@ func _special() -> void:
 				sfx_slash.pitch_scale = 1.6
 				sfx_slash.play()
 				await get_tree().create_timer(0.09).timeout
-		"zoom":    # SHOULDER CHARGE: unstoppable dash that smashes everything in the way
+		"zoom":
 			special_cd = 3.0
 			charging = true
 			charge_hits.clear()
@@ -420,7 +411,7 @@ func _special() -> void:
 			attack_anim_t = 0.35
 			if gm:
 				gm._toast("SHOULDER CHARGE!")
-		"brains":  # BIG BRAIN HEAL: +1 mask
+		"brains":
 			if pmasks >= pmax:
 				if gm:
 					gm._toast("Already at full masks")
@@ -455,7 +446,6 @@ func _charge_hits() -> void:
 				gm.hit_enemy(enemy, self)
 
 
-# BOUNCE BACK: landed on top of one of your old bodies? Launch!
 func _check_bounce() -> void:
 	for i in get_slide_collision_count():
 		var c := get_slide_collision(i)
@@ -493,7 +483,6 @@ func _draw() -> void:
 		draw_arc(c, 14.0, deg_to_rad(start), deg_to_rad(start + 120.0), 12, col, 3.0)
 
 
-# ---------------- Called by the game manager ----------------
 func take_hit(from_pos: Vector2) -> void:
 	invuln = 1.0
 	stun = 0.2

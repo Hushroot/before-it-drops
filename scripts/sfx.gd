@@ -1,5 +1,3 @@
-# ORIGIN: NEW, written by team. Sounds are Kenney's CC0 packs.
-# Sfx autoload: Sfx.play("hit") plays a random variant with a little pitch wobble.
 extends Node
 
 const DIR := "res://assets/sounds/kenney/"

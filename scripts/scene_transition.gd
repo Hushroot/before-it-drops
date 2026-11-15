@@ -1,7 +1,6 @@
-# ORIGIN: NEW, written by team.
 extends CanvasLayer
-## Fade through black when scenes change. Watching the current scene here keeps
-## the fade working when another script changes scenes directly.
+
+
 var cover: ColorRect
 var _observed: Node
 var _tween: Tween
@@ -36,5 +35,5 @@ func _on_scene_leaving() -> void:
 	_leaving = true
 	if _tween:
 		_tween.kill()
-	# Immediately hide resource loading; the next process frame completes the dip.
+
 	cover.color.a = 0.75

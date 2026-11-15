@@ -1,13 +1,3 @@
-# ORIGIN: NEW, written by team.
-# STORY LEVELS as text maps. Edit a map here and press F5: the level is rebuilt from this text.
-# Legend (1 character = one 16 px tile):
-#   #  solid ground          =  one-way platform        X  death spikes (instant death, your body stays)
-#   P  player start          B  bench (checkpoint)      C  coin (geo)
-#   g  lollipop guard        h  smug guard              f  flame guard (elite)
-#   s  scalper (throws price tags)   t  streamer (fast)   o  preorder guy (receipt shield)   L  LINE CUTTER mini-boss (blocks the exit)
-#   E  exit (next level / the store)                    1-9  sign (text in "signs")
-#   .  empty (falling below the map = pit)
-# Optional secrets: high coins above paired one-way ledges; hold jump on a body bounce.
 extends RefCounted
 
 const STORY := [

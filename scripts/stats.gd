@@ -1,6 +1,5 @@
 extends Node
-## Run totals survive scene changes. Call reset() when starting a new run.
-## start_time is monotonic seconds; subtract it from Time.get_ticks_msec() / 1000.0.
+
 
 const LevelStats = preload("res://scripts/level_stats.gd")
 
@@ -21,7 +20,7 @@ func reset() -> void:
 
 
 func _on_node_added(node: Node) -> void:
-	# GameManager joins its group in _ready(), after node_added is emitted.
+
 	node.ready.connect(_on_node_ready.bind(node), CONNECT_ONE_SHOT)
 
 

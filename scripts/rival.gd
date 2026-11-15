@@ -1,9 +1,3 @@
-# ORIGIN: NEW, written by team. Original characters drawn in code (no image files).
-# RIVAL BUYERS: other people in line for the last copy.
-#   "scalper"     5 backpacks of copies, throws price tags          3 HP
-#   "streamer"    ring light + headset, zig-zags, spams chat         3 HP, fast
-#   "preorder"    holds a giant receipt like a shield (front hits CLANK; pogo or hit his back)   4 HP
-#   "line_cutter" MINI-BOSS: blocks the store door, telegraphs then charges   14 HP
 extends Node2D
 
 const KILLZONE_SCENE = preload("res://scenes/killzone.tscn")
@@ -24,11 +18,11 @@ const LINES := {
 }
 
 var kind := "scalper"
-var dir := 1.0 # preserve the old effective startup heading, without a cold-ray flip
+var dir := 1.0
 var t := 0.0
 var talk_t := 2.0
 var shoot_t := 2.0
-var state := "walk"          # line cutter: walk / tell / charge / stunned
+var state := "walk"
 var state_t := 1.5
 var art: Node2D
 var max_hp := 1
@@ -37,7 +31,7 @@ var vel_y := 0.0
 
 
 func _ready() -> void:
-	add_to_group("enemy_target")   # bounced-back price tags home in on these
+	add_to_group("enemy_target")
 	var s: Dictionary = STATS[kind]
 	max_hp = s.hp
 	set_meta("hp", s.hp)
@@ -72,7 +66,7 @@ func _physics_process(delta: float) -> void:
 		var fall := Navigation.flight(self, global_position, Vector2(0, vel_y), delta, s.h)
 		global_position = fall.position
 		vel_y = fall.velocity.y
-		return # settle before choosing a patrol or charge direction
+		return
 	global_position.y = ground.position.y
 	vel_y = 0.0
 	var p = _nearest_player(260.0)
@@ -88,11 +82,11 @@ func _physics_process(delta: float) -> void:
 			if kind == "preorder" and p:
 				var distance: float = p.global_position.x - global_position.x
 				if absf(distance) > 8.0:
-					dir = signf(distance) # keep facing the player while stopping safely at edges
+					dir = signf(distance)
 					_walk(s.speed * delta, false)
 			else:
 				_walk(s.speed * delta)
-	# scalper throws price tags
+
 	if kind == "scalper" and p and Navigation.has_sight(self, p, s.h):
 		shoot_t -= delta
 		if shoot_t <= 0.0:
@@ -102,7 +96,7 @@ func _physics_process(delta: float) -> void:
 			var to: Vector2 = (p.global_position + Vector2(0, -10) - shot.global_position).normalized()
 			shot.velocity = to * 150.0
 			get_parent().add_child(shot)
-	# catchphrases
+
 	if p:
 		talk_t -= delta
 		if talk_t <= 0.0:
@@ -118,7 +112,7 @@ func _walk(distance: float, turn := true) -> bool:
 
 
 func take_knockback(distance: float) -> void:
-	# Keep rivals reachable after a hit, including the boss guarding the exit.
+
 	var step := Navigation.walk(self, signf(distance), absf(distance), STATS[kind].h, false)
 	global_position = step.position
 
@@ -152,7 +146,6 @@ func _line_cutter(delta: float, p) -> void:
 				state_t = randf_range(1.2, 2.0)
 
 
-# Called by game_manager when a nail / shot hits
 func on_nail_hit(by: Node2D) -> void:
 	var gm = get_tree().get_first_node_in_group("game_manager")
 	if gm == null:
@@ -167,7 +160,7 @@ func on_nail_hit(by: Node2D) -> void:
 				by.velocity.x = 160.0 * signf(by.global_position.x - global_position.x)
 			return
 	if kind == "line_cutter" and state == "stunned":
-		gm.damage_enemy(self, by)      # double damage while dizzy
+		gm.damage_enemy(self, by)
 	gm.damage_enemy(self, by)
 	if kind == "line_cutter" and int(get_meta("hp", 0)) <= 0:
 		gm._toast("THE DOOR IS OPEN!")
@@ -204,32 +197,31 @@ func _nearest_player(max_d: float):
 	return best
 
 
-# ---------------- original pixel-chunky characters ----------------
 func _draw_art() -> void:
-	var f := -1.0 if dir < 0 else 1.0      # facing
+	var f := -1.0 if dir < 0 else 1.0
 	var bob := absf(sin(t * 8.0)) * 1.5 if kind != "line_cutter" or state == "walk" else 0.0
 	var outline := Color(0.08, 0.05, 0.1)
 	match kind:
 		"scalper":
 			_legs(Color(0.2, 0.2, 0.25), bob)
-			_rect(-7, -20 - bob, 14, 12, Color(0.45, 0.45, 0.5), outline)          # grey hoodie
-			for i in 5:                                                        # backpack tower
+			_rect(-7, -20 - bob, 14, 12, Color(0.45, 0.45, 0.5), outline)
+			for i in 5:
 				_rect(-f * 9 - 5, -22 - i * 5 - bob, 9, 5, [Color(0.9, 0.3, 0.4), Color(0.3, 0.6, 1), Color(1, 0.8, 0.2), Color(0.4, 0.9, 0.5), Color(0.8, 0.4, 1)][i], outline)
 			_head(Color(0.85, 0.65, 0.5), bob)
-			_rect(-6, -29 - bob, 12, 3, Color(0.15, 0.15, 0.2), null)               # backwards cap
+			_rect(-6, -29 - bob, 12, 3, Color(0.15, 0.15, 0.2), null)
 			_rect(-f * 6 - 3, -28 - bob, 4, 2, Color(0.15, 0.15, 0.2), null)
-			_rect(-4 + f, -25 - bob, 8, 2, Color(0.05, 0.05, 0.05), null)           # shades
-			_rect(f * 6 - 2, -16 - bob, 5, 6, Color(1, 0.3, 0.6), outline)          # copy in hand
+			_rect(-4 + f, -25 - bob, 8, 2, Color(0.05, 0.05, 0.05), null)
+			_rect(f * 6 - 2, -16 - bob, 5, 6, Color(1, 0.3, 0.6), outline)
 			art.draw_string(FONT, Vector2(f * 6 - 2, -11 - bob), "$", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color.WHITE)
 		"streamer":
 			var glow := 0.6 + 0.4 * sin(t * 6.0)
-			art.draw_arc(Vector2(0, -24 - bob), 11, 0, TAU, 24, Color(1, 1, 1, glow), 2.0)   # ring light
+			art.draw_arc(Vector2(0, -24 - bob), 11, 0, TAU, 24, Color(1, 1, 1, glow), 2.0)
 			_legs(Color(0.15, 0.15, 0.2), bob)
-			_rect(-7, -20 - bob, 14, 12, Color(0.55, 0.25, 0.85), outline)          # purple hoodie
+			_rect(-7, -20 - bob, 14, 12, Color(0.55, 0.25, 0.85), outline)
 			_head(Color(0.95, 0.75, 0.6), bob)
-			art.draw_arc(Vector2(0, -24 - bob), 6, PI, TAU, 10, Color(0.1, 0.1, 0.1), 2.0)    # headset
+			art.draw_arc(Vector2(0, -24 - bob), 6, PI, TAU, 10, Color(0.1, 0.1, 0.1), 2.0)
 			_rect(f * 5, -26 - bob, 3, 4, Color(0.1, 0.1, 0.1), null)
-			art.draw_line(Vector2(f * 6, -14 - bob), Vector2(f * 16, -30 - bob), Color(0.2, 0.2, 0.2), 1.5)   # selfie stick
+			art.draw_line(Vector2(f * 6, -14 - bob), Vector2(f * 16, -30 - bob), Color(0.2, 0.2, 0.2), 1.5)
 			_rect(f * 16 - 2, -34 - bob, 4, 6, Color(0.1, 0.1, 0.15), Color(0.4, 0.9, 1))
 			if int(t * 2.0) % 2 == 0:
 				art.draw_string(FONT, Vector2(-14, -40 - bob), "W W W", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(0.4, 1, 0.5))
@@ -237,30 +229,30 @@ func _draw_art() -> void:
 				art.draw_string(FONT, Vector2(-10, -40 - bob), "L L", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(1, 0.4, 0.4))
 		"preorder":
 			_legs(Color(0.3, 0.25, 0.2), bob)
-			_rect(-7, -20 - bob, 14, 12, Color(0.25, 0.6, 0.35), outline)           # green shirt
+			_rect(-7, -20 - bob, 14, 12, Color(0.25, 0.6, 0.35), outline)
 			_head(Color(0.8, 0.6, 0.45), bob)
-			art.draw_rect(Rect2(-5 + f, -26 - bob, 4, 3), Color.BLACK, false, 1.0)   # glasses
+			art.draw_rect(Rect2(-5 + f, -26 - bob, 4, 3), Color.BLACK, false, 1.0)
 			art.draw_rect(Rect2(1 + f, -26 - bob, 4, 3), Color.BLACK, false, 1.0)
-			_rect(f * 6 - 3, -27 - bob, 7, 24, Color(0.97, 0.97, 0.92), outline)    # giant receipt
+			_rect(f * 6 - 3, -27 - bob, 7, 24, Color(0.97, 0.97, 0.92), outline)
 			for i in 6:
 				art.draw_line(Vector2(f * 6 - 1, -23 + i * 3 - bob), Vector2(f * 6 + 2, -23 + i * 3 - bob), Color(0.5, 0.5, 0.5), 1.0)
 		"line_cutter":
 			var shake := Vector2(randf_range(-1, 1), 0) if state == "tell" else Vector2.ZERO
 			art.position = shake
-			art.draw_line(Vector2(-6, -12), Vector2(-8, 0), outline, 5.0)          # legs
+			art.draw_line(Vector2(-6, -12), Vector2(-8, 0), outline, 5.0)
 			art.draw_line(Vector2(6, -12), Vector2(8, 0), outline, 5.0)
-			_rect(-12, -32, 24, 21, Color(0.85, 0.15, 0.2), outline)               # red tracksuit
+			_rect(-12, -32, 24, 21, Color(0.85, 0.15, 0.2), outline)
 			_rect(-1, -32, 2, 21, Color.WHITE, null)
-			_rect(-14, -26, 28, 5, Color(0.75, 0.1, 0.15), outline)                # crossed arms
+			_rect(-14, -26, 28, 5, Color(0.75, 0.1, 0.15), outline)
 			art.draw_circle(Vector2(0, -38), 8, outline)
 			art.draw_circle(Vector2(0, -38), 7, Color(0.7, 0.5, 0.35))
-			_rect(-6 + f * 2, -41, 12, 3, Color(0.05, 0.05, 0.05), null)           # shades
-			_rect(-7, -46, 14, 3, Color(0.1, 0.1, 0.1), null)                      # buzz cut
+			_rect(-6 + f * 2, -41, 12, 3, Color(0.05, 0.05, 0.05), null)
+			_rect(-7, -46, 14, 3, Color(0.1, 0.1, 0.1), null)
 			if state == "stunned":
 				for i in 3:
 					var a := t * 6.0 + i * TAU / 3.0
 					art.draw_circle(Vector2(cos(a) * 9, -48 + sin(a) * 3), 2, Color(1, 0.9, 0.3))
-			# name + health bar
+
 			var hp: int = get_meta("hp", max_hp)
 			art.draw_string(FONT, Vector2(-34, -60), "THE LINE CUTTER", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(1, 0.5, 0.5))
 			art.draw_rect(Rect2(-24, -56, 48, 4), Color.BLACK)

@@ -1,6 +1,5 @@
-# ORIGIN: NEW, written by team. Terrain perception shared by enemy AI.
 extends RefCounted
-## Queries terrain now, rather than using last tick's direction-dependent ray cache.
+
 const FOOT_MARGIN := 2.0
 const GRAVITY := 700.0
 
@@ -72,7 +71,7 @@ static func flight(actor: Node2D, feet: Vector2, velocity: Vector2, delta: float
 		velocity.x = 0.0
 	var landed := false
 	if velocity.y >= 0.0:
-		# Sweep the whole fall distance: a short probe can skip a platform entirely.
+
 		var hit := _ray(actor, Vector2(next.x, feet.y - 2), Vector2(next.x, next.y + 2))
 		if not hit.is_empty() and hit.normal.y < -0.5:
 			next.y = hit.position.y
@@ -86,8 +85,8 @@ static func safe_hop(actor: Node2D, direction: float, speed: float, jump: float,
 	var start := actor.global_position
 	var feet := start
 	var velocity := Vector2(direction * speed, jump)
-	# Simulate against real terrain before committing to the jump. Gaps may be
-	# crossed only when the landing is safe, at approximately the same height.
+
+
 	for i in 90:
 		velocity.y += GRAVITY / 60.0
 		velocity.x = direction * speed * (1.6 if velocity.y < 0.0 else 1.0)

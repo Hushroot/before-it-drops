@@ -1,11 +1,9 @@
-# ORIGIN: NEW, written by team.
-# PROJECTILE: power shots and SPARK's finger-gun sparks. Flies straight, hits each enemy once.
 extends Node2D
 
 var velocity := Vector2.ZERO
-var power := 1                 # damage
-var armor_break := true        # damages the boss from the side
-var pierce := false            # keeps flying after a hit
+var power := 1
+var armor_break := true
+var pierce := false
 var radius := 6.0
 var color := Color(0.6, 0.9, 1.0)
 var life := 1.2
@@ -32,7 +30,7 @@ func _physics_process(delta: float) -> void:
 		if collider == null:
 			continue
 		if collider is TileMap or (collider is StaticBody2D and not collider.is_in_group("bounce_pad")):
-			queue_free()      # hit a wall
+			queue_free()
 			return
 		if collider.get_script() and collider.get_script().resource_path.ends_with("killzone.gd"):
 			var enemy = collider.get_parent()

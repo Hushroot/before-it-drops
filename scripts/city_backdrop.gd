@@ -1,13 +1,7 @@
-# ORIGIN: NEW, written by team. Drawn entirely in code (no image files).
-# CITY BACKDROP: a Vice-Slime city with parallax, styled per stage.
-#   "docks"   sunset harbor, cranes, palms
-#   "streets" pink sunset, dense buildings, neon shop signs, streetlights
-#   "roof"    night skyline, stars, moon, lit windows
-#   "store"   purple sunset, giant GAMES sign behind the boss
 extends ParallaxBackground
 
 const FONT = preload("res://assets/fonts/PixelOperator8-Bold.ttf")
-const W := 1536.0           # pattern width (repeats)
+const W := 1536.0
 const H := 648.0
 const SIGNS := ["GAMES", "24/7", "PIZZA", "MOTEL", "ARCADE", "DONUTS", "VICE", "BOUNCE", "TACOS", "PAWN"]
 const NEON := [Color(1.0, 0.3, 0.7), Color(0.3, 0.95, 1.0), Color(1.0, 0.9, 0.3), Color(0.6, 1.0, 0.4), Color(1.0, 0.5, 0.2)]
@@ -19,7 +13,7 @@ var _layers: Array = []
 
 func _ready() -> void:
 	layer = -100
-	scroll_ignore_camera_zoom = true    # draw in screen pixels, not zoomed with the world camera
+	scroll_ignore_camera_zoom = true
 	var s: Dictionary = _skies()[style]
 	_add_layer(0.0, 0.0, func(ci): _draw_sky(ci, s))
 	_add_layer(0.08, 0.02, func(ci): _draw_skyline(ci, s, 11, 0.55, s.far, false))
@@ -30,7 +24,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	t += delta
 	for l in _layers:
-		l.queue_redraw()     # neon flicker + window twinkle
+		l.queue_redraw()
 
 
 func _skies() -> Dictionary:
@@ -57,7 +51,6 @@ func _add_layer(motion: float, motion_y: float, painter: Callable) -> void:
 	_layers.append(n)
 
 
-# ---------------- painters ----------------
 func _draw_sky(ci: Node2D, s: Dictionary) -> void:
 	var bands := 24
 	for i in bands:
@@ -74,7 +67,7 @@ func _draw_sky(ci: Node2D, s: Dictionary) -> void:
 		ci.draw_circle(Vector2(900, 120), 46, s.sun)
 		ci.draw_circle(Vector2(920, 110), 40, s.top.lerp(s.bottom, 0.15))
 	else:
-		# retro sun with stripes
+
 		var c := Vector2(760, H * 0.62)
 		ci.draw_circle(c, 150, Color(s.sun, 0.25))
 		ci.draw_circle(c, 120, s.sun)
@@ -91,7 +84,7 @@ func _draw_skyline(ci: Node2D, s: Dictionary, seed: int, height_frac: float, col
 		var w := rng.randf_range(40, 110)
 		var h := rng.randf_range(0.25, 1.0) * H * height_frac
 		ci.draw_rect(Rect2(x, H - h, w + 1, h), col)
-		if rng.randf() < 0.25:   # antenna
+		if rng.randf() < 0.25:
 			ci.draw_line(Vector2(x + w / 2, H - h), Vector2(x + w / 2, H - h - 30), col, 2.0)
 			ci.draw_circle(Vector2(x + w / 2, H - h - 30), 2.5, Color(1, 0.2, 0.2, 0.6 + 0.4 * sin(t * 3.0 + x)))
 		x += w + rng.randf_range(0, 12)
@@ -107,7 +100,7 @@ func _draw_buildings(ci: Node2D, s: Dictionary, seed: int, height_frac: float, c
 		var top := H - h
 		ci.draw_rect(Rect2(x, top, w, h), col)
 		ci.draw_rect(Rect2(x, top, w, 4), col.lightened(0.15))
-		# windows
+
 		var wy := top + 14
 		while wy < H - 10:
 			var wx := x + 8
@@ -118,7 +111,7 @@ func _draw_buildings(ci: Node2D, s: Dictionary, seed: int, height_frac: float, c
 						ci.draw_rect(Rect2(wx, wy, 6, 8), Color(1.0, 0.85, 0.5, 0.75) if rng.randf() < 0.7 else Color(0.5, 0.9, 1.0, 0.7))
 				wx += 14
 			wy += 18
-		# neon sign
+
 		if rng.randf() < 0.55 * s.density:
 			var text: String = SIGNS[rng.randi() % SIGNS.size()]
 			var nc: Color = NEON[rng.randi() % NEON.size()]
@@ -131,7 +124,7 @@ func _draw_buildings(ci: Node2D, s: Dictionary, seed: int, height_frac: float, c
 			ci.draw_rect(Rect2(sx - 6, sy - fs - 4, tw + 12, fs + 10), Color(nc, 0.9 * flick), false, 2.0)
 			ci.draw_string(FONT, Vector2(sx, sy), text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(nc, flick))
 		x += w + rng.randf_range(4, 30)
-	# the store's giant sign
+
 	if style == "store":
 		_storefront(ci)
 
@@ -185,7 +178,6 @@ func _crane(ci: Node2D, x: float, col: Color) -> void:
 	ci.draw_circle(Vector2(x + 7, H - 306), 3, Color(1, 0.2, 0.2, 0.5 + 0.5 * sin(t * 3.0)))
 
 
-# THE GAME STORE (boss arena): the side of the store, code-drawn. Opponents walk out of its door.
 func _storefront(ci: Node2D) -> void:
 	var x0 := 250.0
 	var x1 := 1110.0
@@ -193,7 +185,7 @@ func _storefront(ci: Node2D) -> void:
 	var ground := 560.0
 	var nc := Color(1.0, 0.3, 0.75)
 	var glow := 0.8 + 0.2 * sin(t * 4.0)
-	# building + bricks
+
 	ci.draw_rect(Rect2(x0, top, x1 - x0, ground - top), Color(0.36, 0.22, 0.30))
 	for row in int((ground - top) / 14.0):
 		var y := top + row * 14.0
@@ -202,24 +194,24 @@ func _storefront(ci: Node2D) -> void:
 		while bx < x1:
 			ci.draw_rect(Rect2(bx, y, 27, 13), Color(0.42, 0.26, 0.34))
 			bx += 28.0
-	ci.draw_rect(Rect2(x0 - 10, top - 14, x1 - x0 + 20, 16), Color(0.22, 0.12, 0.20))   # roof ledge
-	# neon GAMES sign
+	ci.draw_rect(Rect2(x0 - 10, top - 14, x1 - x0 + 20, 16), Color(0.22, 0.12, 0.20))
+
 	ci.draw_rect(Rect2(500, 136, 360, 84), Color(0.08, 0.02, 0.1))
 	ci.draw_rect(Rect2(500, 136, 360, 84), Color(nc, glow), false, 5.0)
 	ci.draw_string(FONT, Vector2(536, 200), "GAMES", HORIZONTAL_ALIGNMENT_LEFT, -1, 56, Color(nc, glow))
 	ci.draw_string(FONT, Vector2(552, 216), "LAST COPY INSIDE", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1, 0.9, 0.3, glow))
-	# striped awning
+
 	var aw_y := 250.0
 	var sx := x0 + 20.0
 	var i := 0
 	while sx < x1 - 20.0:
 		var c := Color(1.0, 0.35, 0.6) if i % 2 == 0 else Color(0.98, 0.93, 0.88)
 		ci.draw_rect(Rect2(sx, aw_y, 30, 34), c)
-		ci.draw_circle(Vector2(sx + 15, aw_y + 34), 15.0, c)       # scalloped edge
+		ci.draw_circle(Vector2(sx + 15, aw_y + 34), 15.0, c)
 		sx += 30.0
 		i += 1
 	ci.draw_rect(Rect2(x0 + 20, aw_y - 6, x1 - x0 - 40, 8), Color(0.25, 0.12, 0.2))
-	# two shop windows full of game boxes + the door in the middle
+
 	var door_x := (x0 + x1) / 2.0 - 45.0
 	for wxv in [x0 + 50.0, door_x + 140.0]:
 		var wx: float = wxv
@@ -236,22 +228,22 @@ func _storefront(ci: Node2D) -> void:
 				var h := rng.randf_range(24, 34)
 				var bc := Color.from_hsv(rng.randf(), 0.6, 0.85)
 				ci.draw_rect(Rect2(bx2, shy - h, 16, h), bc)
-				ci.draw_rect(Rect2(bx2 + 2, shy - h + 3, 12, 6), Color(1, 1, 1, 0.5))    # label
+				ci.draw_rect(Rect2(bx2 + 2, shy - h + 3, 12, 6), Color(1, 1, 1, 0.5))
 				bx2 += 20.0
-		# glass shine
+
 		ci.draw_line(Vector2(wx + 30, 330), Vector2(wx + 90, 480), Color(1, 1, 1, 0.12), 10.0)
 		ci.draw_rect(wr, Color(0.2, 0.1, 0.15), false, 6.0)
-	# door (opponents come out of here)
+
 	ci.draw_rect(Rect2(door_x, 330, 90, ground - 330), Color(0.07, 0.04, 0.10))
 	ci.draw_rect(Rect2(door_x, 330, 90, ground - 330), Color(0.2, 0.1, 0.15), false, 6.0)
 	ci.draw_rect(Rect2(door_x + 14, 350, 62, 26), Color(0.1, 0.5, 0.2))
 	ci.draw_string(FONT, Vector2(door_x + 20, 369), "OPEN", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(0.6, 1.0, 0.6, glow))
-	# warm hanging lamps
+
 	for lx in [x0 + 130.0, door_x + 45.0, x1 - 130.0]:
 		ci.draw_line(Vector2(lx, 284), Vector2(lx, 302), Color(0.1, 0.05, 0.08), 2.0)
 		ci.draw_circle(Vector2(lx, 310), 22.0, Color(1.0, 0.6, 0.2, 0.18 * glow))
 		ci.draw_circle(Vector2(lx, 310), 8.0, Color(1.0, 0.65, 0.25))
-	# potted plants
+
 	for px in [x0 + 20.0, door_x - 30.0, door_x + 108.0, x1 - 40.0]:
 		ci.draw_rect(Rect2(px, ground - 30, 22, 30), Color(0.55, 0.32, 0.2))
 		ci.draw_circle(Vector2(px + 11, ground - 44), 18.0, Color(0.25, 0.55, 0.3))

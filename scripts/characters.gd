@@ -1,10 +1,6 @@
-# ORIGIN: NEW, written by team.
-# CHARACTER REGISTRY: the playable fighters, their perks, and how their sprite sheets map to animations.
-# Frames live in res://assets/characters/<id>/<sheet_anim>_<n>.png (cut from the team's character sheets).
-# Rename a fighter: change "name" below. The chosen id is stored in Engine meta "character".
 extends RefCounted
 
-const SPRITE_SCALE := 0.62      # 48 px frames -> about Brackeys-knight size in the world
+const SPRITE_SCALE := 0.62
 
 const LIST := [
 	{
@@ -75,15 +71,13 @@ static func build_frames(c: Dictionary) -> SpriteFrames:
 			used_frames = 1
 		for i in used_frames:
 			var frame := i
-			# Fighters with a lying pose use the last knockdown frame.
+
 			if anim == "knockdown" and not c.knockdown_rotate:
 				frame = count - 1
 			frames.add_frame(anim, load("res://assets/characters/%s/%s_%d.png" % [c.id, sheet, frame]))
 	return frames
 
 
-# Keep the sprite's feet on the ground no matter how big each frame is.
-# (Frames are centered on the character's head and bottom-aligned on the feet.)
 static func fit_sprite(sprite: AnimatedSprite2D) -> void:
 	var tex := sprite.sprite_frames.get_frame_texture(sprite.animation, sprite.frame)
 	if tex == null:

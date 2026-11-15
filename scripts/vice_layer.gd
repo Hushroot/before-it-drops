@@ -1,13 +1,6 @@
-# ORIGIN: NEW, written by team.
-# VICE LAYER: the GTA VI parody/meme layer (no Rockstar logos, fonts or art; text + colors only).
-#  - sunset color grade over the world
-#  - "SLIME ALERT" stars (go up when you fight, cool down over time)
-#  - "BOUNCED" death screen (parody of WASTED) + hospital bill meme
-#  - "MISSION PASSED" banner
-#  - title card + meme line when a level starts
 extends CanvasLayer
 
-const GAME_TITLE := "BEFORE IT DROPS"     # <- rename the game here
+const GAME_TITLE := "BEFORE IT DROPS"
 const FONT = preload("res://assets/fonts/PixelOperator8-Bold.ttf")
 const MEMES := [
 	"GTA VI drops Nov 19. This dropped today.",
@@ -18,9 +11,8 @@ const MEMES := [
 
 var gm
 var stars := 0
-var custom_title := ""       # story levels set these for their title card
+var custom_title := ""
 var custom_line := ""
-var last_deaths := 0
 var stars_ctrl: Control
 var t := 0.0
 
@@ -28,11 +20,11 @@ var t := 0.0
 func _ready() -> void:
 	add_to_group("vice_layer")
 	layer = 10
-	# sunset grade on the whole world (CanvasModulate only tints the game, not the UI)
+
 	var tint := CanvasModulate.new()
 	tint.color = Color(1.0, 0.9, 0.95)
 	get_tree().current_scene.add_child.call_deferred(tint)
-	# warm gradient at the top of the screen
+
 	var grad := Gradient.new()
 	grad.set_color(0, Color(1.0, 0.35, 0.6, 0.28))
 	grad.set_color(1, Color(1.0, 0.6, 0.3, 0.0))
@@ -47,17 +39,15 @@ func _ready() -> void:
 	sky.size = Vector2(1152, 260)
 	sky.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	add_child(sky)
-	# wanted stars
+
 	stars_ctrl = Control.new()
 	stars_ctrl.position = Vector2(1152 - 200, 14)
 	stars_ctrl.draw.connect(_draw_stars)
 	add_child(stars_ctrl)
 	await get_tree().process_frame
-	if not is_inside_tree():      # level was closed before the title card could show
+	if not is_inside_tree():
 		return
 	gm = get_tree().get_first_node_in_group("game_manager")
-	if gm:
-		last_deaths = gm.deaths
 	title_card()
 
 
@@ -70,9 +60,6 @@ func _process(delta: float) -> void:
 		_flash_text("SLIME ALERT +1", Color(1, 0.85, 0.3), 16, Vector2(0, -170))
 	stars = new_stars
 	stars_ctrl.queue_redraw()
-	if gm.deaths > last_deaths:
-		last_deaths = gm.deaths
-		bounced()
 
 
 func _draw_stars() -> void:
@@ -93,26 +80,6 @@ func _star(c: Vector2, r: float, col: Color) -> void:
 		var a := -PI / 2 + k * PI / 5
 		pts.append(c + Vector2(cos(a), sin(a)) * rr)
 	stars_ctrl.draw_colored_polygon(pts, col)
-
-
-# ---------------- big moments ----------------
-func bounced() -> void:
-	Sfx.play("bounced", -2.0, 0.0)
-	var grey := ColorRect.new()
-	grey.color = Color(0.1, 0.1, 0.12, 0.0)
-	grey.set_anchors_preset(Control.PRESET_FULL_RECT)
-	grey.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(grey)
-	var tw := create_tween()
-	tw.tween_property(grey, "color:a", 0.55, 0.25)
-	var big := _flash_text("BOUNCED", Color(0.95, 0.2, 0.3), 64, Vector2(0, -30), 2.2)
-	big.scale = Vector2(1.4, 1.4)
-	create_tween().tween_property(big, "scale", Vector2.ONE, 0.25)
-	var bill: int = gm.last_drop if gm else 0
-	_flash_text("Hospital bill: %d geo. Your body's still holding it." % bill, Color.WHITE, 12, Vector2(0, 40), 2.2)
-	tw.tween_interval(1.6)
-	tw.tween_property(grey, "color:a", 0.0, 0.4)
-	tw.tween_callback(grey.queue_free)
 
 
 func mission_passed() -> void:

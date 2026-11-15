@@ -1,7 +1,3 @@
-# ORIGIN: NEW, written by team.
-# BOSS RAID LOBBY: up to 3 players on one screen.
-#   PS4 controller: CROSS = join, LEFT/RIGHT (d-pad / stick) = change fighter, CIRCLE = leave, OPTIONS = start
-#   Keyboard:       ENTER = join (then ENTER = start), ← → = change fighter, BACKSPACE = leave, ESC = back
 extends Node2D
 
 const Characters = preload("res://scripts/characters.gd")
@@ -11,9 +7,9 @@ const MAX_PLAYERS := 3
 const CARD := Vector2(300, 360)
 const COLORS := [Color(0.4, 0.8, 1.0), Color(1.0, 0.55, 0.4), Color(0.6, 1.0, 0.5)]
 
-var slots: Array = []          # [{device, char}]  device: -2 keyboard, 0.. = controller
+var slots: Array = []
 var cards: Array = []
-var stick_cd := {}             # device -> cooldown for stick left/right
+var stick_cd := {}
 var ui: CanvasLayer
 var hint: Label
 var starting := false
@@ -158,7 +154,7 @@ func _start() -> void:
 	Engine.set_meta("character", raid[0].char)
 	sfx_join.play()
 	await get_tree().create_timer(0.4).timeout
-	# co-op plays the whole story together: Level 1 -> 2 -> 3 -> the Godfather
+
 	Engine.set_meta("level_index", 1)
 	Engine.set_meta("total_deaths", 0)
 	get_tree().change_scene_to_file("res://scenes/story_level.tscn")

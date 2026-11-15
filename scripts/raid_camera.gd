@@ -1,10 +1,7 @@
-# ORIGIN: NEW, written by team.
-# RAID CAMERA (Brawlhalla style): one shared screen. Follows the middle of every player AND the boss,
-# and zooms out when they spread apart so everyone stays on screen.
 extends Camera2D
 
-const MAX_ZOOM := 3.0      # closest
-const MIN_ZOOM := 1.6      # furthest out
+const MAX_ZOOM := 3.0
+const MIN_ZOOM := 1.6
 const MARGIN := Vector2(90, 70)
 
 var arena_rect := Rect2(0, -240, 640, 300)

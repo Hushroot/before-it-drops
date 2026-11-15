@@ -1,5 +1,3 @@
-# ORIGIN: NEW, written by team.
-# ENDING: after the boss dies, every body you left behind STANDS UP. "They all got back up."
 extends Node
 
 const FONT = preload("res://assets/fonts/PixelOperator8-Bold.ttf")
@@ -10,7 +8,7 @@ func play(gm, player) -> void:
 	if vice:
 		vice.mission_passed()
 	await get_tree().create_timer(2.5).timeout
-	# all your old bodies stand up, one by one
+
 	var bodies: Array = gm.bodies.filter(func(b): return is_instance_valid(b))
 	var sfx := AudioStreamPlayer.new()
 	sfx.stream = load("res://assets/sounds/power_up.wav")

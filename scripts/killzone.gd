@@ -1,8 +1,3 @@
-# ORIGIN: Brackeys tutorial (human-written): Area2D that hurts on touch.
-# MODIFIED BY TEAM: now costs 1 MASK instead of reloading the level (Hollow Knight style).
-#   leaves_body = true  -> enemy (slime): knockback + lose a mask
-#   leaves_body = false -> hazard (spikes, pits): lose a mask + respawn at last safe ground
-#   instant_kill = true -> DEATH SPIKES: you die right away and your body stays HERE (for "die on purpose" puzzles)
 extends Area2D
 
 @export var leaves_body := true
@@ -23,4 +18,4 @@ func _on_body_entered(body):
 
 
 func _on_timer_timeout():
-	pass   # kept so the old signal connection in killzone.tscn still works
+	pass

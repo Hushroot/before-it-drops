@@ -1,6 +1,3 @@
-# ORIGIN: NEW, written by team.
-# CHOOSE YOUR FIGHTER: the home screen. ←/→ (or A/D, or mouse) to pick, ENTER / SPACE / click to play.
-# B = jump straight to the boss fight (for demos).
 extends Node2D
 
 const Characters = preload("res://scripts/characters.gd")
@@ -8,7 +5,7 @@ const FONT = preload("res://assets/fonts/PixelOperator8-Bold.ttf")
 const GAME_TITLE := "BEFORE IT DROPS"
 const SUBTITLE := "We got GTA VI before release day."
 const FIRST_LEVEL := "res://scenes/story_level.tscn"
-const INTRO := "res://scenes/intro.tscn"          # optional, made by Mazen
+const INTRO := "res://scenes/intro.tscn"
 const FALLBACK_LEVEL := "res://scenes/game.tscn"
 const BOSS := "res://scenes/boss_arena.tscn"
 const RAID_LOBBY := "res://scenes/raid_lobby.tscn"
@@ -64,7 +61,7 @@ func _label(text: String, size: int, col: Color, pos: Vector2, width: float) -> 
 func _build() -> void:
 	var ui := CanvasLayer.new()
 	add_child(ui)
-	# sunset sky
+
 	var grad := Gradient.new()
 	grad.set_color(0, Color(1.0, 0.35, 0.6))
 	grad.set_color(1, Color(0.12, 0.05, 0.2))
@@ -133,7 +130,7 @@ func _process(delta: float) -> void:
 	t += delta
 	for spr in sprites:
 		Characters.fit_sprite(spr)
-	# little bounce on the selected fighter
+
 	if sprites.size() > 0:
 		sprites[selected].position.y = 250 - absf(sin(t * 4.0)) * 6.0
 
@@ -141,7 +138,7 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if starting:
 		return
-	# PS4 controller on the menu
+
 	if event is InputEventJoypadButton and event.pressed:
 		match event.button_index:
 			JOY_BUTTON_DPAD_LEFT:
@@ -177,14 +174,14 @@ func _on_card_input(event: InputEvent, i: int) -> void:
 
 func _first_level() -> String:
 	if ResourceLoader.exists(INTRO):
-		return INTRO          # Mazen's story intro (it then loads the first story level)
+		return INTRO
 	return FIRST_LEVEL if ResourceLoader.exists(FIRST_LEVEL) else FALLBACK_LEVEL
 
 
 func _start(scene: String) -> void:
 	starting = true
 	Engine.set_meta("character", Characters.LIST[selected].id)
-	Engine.set_meta("raid", [])         # single player
+	Engine.set_meta("raid", [])
 	Engine.set_meta("level_index", 1)
 	Engine.set_meta("total_deaths", 0)
 	sfx_pick.play()

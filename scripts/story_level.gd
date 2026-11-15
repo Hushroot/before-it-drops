@@ -1,5 +1,3 @@
-# ORIGIN: NEW, written by team. Tiles, coins, benches = Brackeys (CC0).
-# STORY LEVEL: builds the level from the text map in levels.gd (level number = Engine meta "level_index").
 extends Node2D
 
 const Levels = preload("res://scripts/levels.gd")
@@ -22,7 +20,7 @@ const TILES := {
 	"stone": [Vector2i(8, 0), Vector2i(8, 1)],
 	"sand": [Vector2i(2, 0), Vector2i(2, 1)],
 }
-const SKY := {"day": 0, "sunset": 2, "night": 3}     # background color column in the Brackeys tileset
+const SKY := {"day": 0, "sunset": 2, "night": 3}
 
 var index := 1
 var data: Dictionary
@@ -57,7 +55,7 @@ func _build() -> void:
 	tilemap.add_layer(-1)
 	add_child(tilemap)
 	move_child(tilemap, 0)
-	# Vice Slime city in the background (parallax)
+
 	var backdrop = CityBackdrop.new()
 	backdrop.style = data.get("backdrop", "streets")
 	add_child(backdrop)
@@ -106,7 +104,7 @@ func _build() -> void:
 					_make_exit(pos)
 			if cell in "123456789" and data.signs.has(cell):
 				_make_sign(pos, data.signs[cell])
-			# death spikes: one killzone per run of X
+
 			if cell == "X" and spike_run < 0:
 				spike_run = x
 			if cell != "X" and spike_run >= 0:
@@ -115,7 +113,7 @@ func _build() -> void:
 		if spike_run >= 0:
 			_make_spikes(spike_run, width - 1, y)
 			spike_run = -1
-	# falling off the bottom = pit hazard (lose a mask, back to the edge)
+
 	var pit = KILLZONE.instantiate()
 	pit.leaves_body = false
 	var shape := CollisionShape2D.new()
@@ -125,7 +123,7 @@ func _build() -> void:
 	pit.add_child(shape)
 	pit.position = Vector2(width * 8, (height + 3) * 16)
 	add_child(pit)
-	# camera limits
+
 	var camera: Camera2D = get_node_or_null("Player/Camera2D")
 	if camera:
 		camera.limit_left = 0
@@ -163,7 +161,7 @@ func _make_sign(pos: Vector2, text: String) -> void:
 	l.add_theme_color_override("font_outline_color", Color.BLACK)
 	l.add_theme_constant_override("outline_size", 4)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # long signs wrap upward instead of running into the next sign
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.size = Vector2(150, 12)
 	add_child(l)
 	var lines: int = maxi(1, l.get_line_count())
@@ -195,7 +193,7 @@ func _make_exit(pos: Vector2) -> void:
 func _on_exit(body) -> void:
 	if done or not body.is_in_group("player"):
 		return
-	# the Line Cutter blocks the door until he's beaten
+
 	var blockers := get_tree().get_nodes_in_group("gatekeeper").filter(func(n): return is_instance_valid(n) and not n.has_meta("dying"))
 	if blockers.size() > 0:
 		blockers[0].say("Nobody gets in. Beat me first.")
@@ -215,7 +213,6 @@ func _on_exit(body) -> void:
 		get_tree().change_scene_to_file(BOSS)
 
 
-# CO-OP STORY: if the raid lobby picked 2-3 players, they play the levels together on one shared screen
 func _setup_coop() -> void:
 	var raid: Array = Engine.get_meta("raid", [])
 	if raid.size() < 2:

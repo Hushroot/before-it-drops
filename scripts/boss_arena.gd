@@ -1,5 +1,3 @@
-# ORIGIN: NEW, written by team. Uses the Brackeys tileset (CC0).
-# BOSS ARENA: the store's rooftop at sunset (Brackeys tiles), where the Hamster Godfather guards the LAST COPY.
 extends Node2D
 
 const TILESET = preload("res://assets/world_tileset.tres")
@@ -9,13 +7,13 @@ const PLAYER_SCENE = preload("res://scenes/player.tscn")
 const RaidCamera = preload("res://scripts/raid_camera.gd")
 const CityBackdrop = preload("res://scripts/city_backdrop.gd")
 
-const W := 40          # arena width in tiles
-const H := 14          # wall height in tiles
-const STONE_TOP := Vector2i(2, 0)     # sand
+const W := 40
+const H := 14
+const STONE_TOP := Vector2i(2, 0)
 const STONE := Vector2i(2, 1)
-const WALL := Vector2i(5, 1)          # pink brick
+const WALL := Vector2i(5, 1)
 const BRICK_TOP := Vector2i(5, 0)
-const SUNSET_COL := 2                 # pink/purple sky column in the tileset (rows 9-15)
+const SUNSET_COL := 2
 const WATER_TOP := Vector2i(4, 9)
 const WATER := Vector2i(4, 10)
 
@@ -23,7 +21,7 @@ var tilemap: TileMap
 
 
 func _ready() -> void:
-	Music.pitch_scale = 1.15   # boss fight: same track, faster and tenser
+	Music.pitch_scale = 1.15
 	if not Music.playing:
 		Music.play()
 	_build_room()
@@ -39,7 +37,6 @@ func _ready() -> void:
 	_setup_raid()
 
 
-# BOSS RAID: replace the single player with 1-3 co-op players on one shared screen
 func _setup_raid() -> void:
 	var raid: Array = Engine.get_meta("raid", [])
 	if raid.is_empty():
@@ -57,7 +54,7 @@ func _setup_raid() -> void:
 		p.player_index = i
 		p.position = start + Vector2(i * 18, 0)
 		add_child(p)
-		# player color tag so you can tell who is who
+
 		var tag := Label.new()
 		tag.text = "P%d" % (i + 1)
 		tag.add_theme_font_override("font", load("res://assets/fonts/PixelOperator8-Bold.ttf"))
@@ -75,15 +72,15 @@ func _setup_raid() -> void:
 func _build_room() -> void:
 	tilemap = TileMap.new()
 	tilemap.tile_set = TILESET
-	tilemap.add_layer(-1)   # layer 1 = solid
+	tilemap.add_layer(-1)
 	add_child(tilemap)
 	move_child(tilemap, 0)
-	tilemap.add_layer(-1)   # layer 2 = decoration (palms)
-	# Vice Slime skyline at sunset with the store's giant GAMES sign
+	tilemap.add_layer(-1)
+
 	var bd = CityBackdrop.new()
 	bd.style = "store"
 	add_child(bd)
-	# floor (sand) + walls (brick)
+
 	for x in range(0, W):
 		tilemap.set_cell(1, Vector2i(x, 0), 0, STONE_TOP)
 		for y in range(1, 4):
@@ -92,7 +89,7 @@ func _build_room() -> void:
 		for x in [0, 1, W - 2, W - 1]:
 			tilemap.set_cell(1, Vector2i(x, y), 0, WALL)
 
-	# floating platforms (pink brick = the old castle)
+
 	for p in [[7, -4, 4], [W - 11, -4, 4], [17, -8, 6]]:
 		for x in range(p[0], p[0] + p[2]):
 			tilemap.set_cell(1, Vector2i(x, p[1]), 0, BRICK_TOP)

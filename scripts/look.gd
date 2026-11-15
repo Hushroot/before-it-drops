@@ -1,5 +1,3 @@
-# ORIGIN: NEW, written by team.
-# LOOK: one art style for everything. Look.outline(sprite) after the sprite is in the tree.
 extends RefCounted
 
 const OUTLINE = preload("res://assets/shaders/outline.gdshader")
@@ -16,7 +14,6 @@ static func outline(spr: CanvasItem, screen_px := 1.0) -> void:
 	spr.material = m
 
 
-# Full-screen color grade, sits above the world and below the HUD
 static func add_grade(parent: Node) -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 1

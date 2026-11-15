@@ -4,7 +4,7 @@ A Godot platformer we made for the Haven Hack Club game jam. The theme was Bounc
 
 You're trying to get the last copy of GTA VI in Vice Slime. First you have to get past the other buyers, cross town, and beat the Hamster Godfather and the Vice Queen.
 
-When you die, your body stays where you fell, holding your coins. You can hit it to get them back or jump on it to bounce higher. Some ledges need that extra height, so dying is part of figuring out the route.
+When you die, a brief notification appears on the right and your body stays where you fell, holding your coins. Only the three newest bodies remain. You can walk through their sides, hit them to get your coins back, or land on top to bounce higher. Some ledges need that extra height, so dying is part of figuring out the route.
 
 ## Run it
 

@@ -1,6 +1,5 @@
-# ORIGIN: NEW, written by team.
 extends CanvasLayer
-## UI remains responsive while the whole shared gameplay screen is paused.
+
 const FONT = preload("res://assets/fonts/PixelOperator8-Bold.ttf")
 const GAME_SCENES := ["res://scenes/game.tscn", "res://scenes/story_level.tscn", "res://scenes/boss_arena.tscn"]
 var overlay: Control
@@ -104,7 +103,7 @@ func close_pause() -> void:
 	get_tree().paused = false
 
 func _process(_delta: float) -> void:
-	# Scene changes made elsewhere must never leave an invisible paused game.
+
 	if overlay.visible:
 		var scene := get_tree().current_scene
 		if scene == null or scene.get_instance_id() != _scene_id:
@@ -179,7 +178,7 @@ func _hide_controls() -> void:
 	controls_button.grab_focus()
 
 func _setup_pad_navigation() -> void:
-	# Do not assume built-in ui_* actions contain joypad events on every export.
+
 	var bindings := {"ui_accept": JOY_BUTTON_A, "ui_up": JOY_BUTTON_DPAD_UP,
 		"ui_down": JOY_BUTTON_DPAD_DOWN, "ui_left": JOY_BUTTON_DPAD_LEFT,
 		"ui_right": JOY_BUTTON_DPAD_RIGHT}

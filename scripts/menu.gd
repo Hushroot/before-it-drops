@@ -1,4 +1,3 @@
-# ORIGIN: NEW, written for the title screen.
 extends Control
 
 @onready var title: Label = $SafeArea/Center/Content/Heading/Title
@@ -36,7 +35,7 @@ func _on_play_pressed() -> void:
 	_starting = true
 	play_button.disabled = true
 	quit_button.disabled = true
-	var level_path := "res://scenes/character_select.tscn"   # title -> CHOOSE YOUR FIGHTER
+	var level_path := "res://scenes/character_select.tscn"
 	Stats.reset()
 	var error := get_tree().change_scene_to_file(level_path)
 	if error != OK:
@@ -55,6 +54,6 @@ func _on_quit_pressed() -> void:
 	play_button.disabled = true
 	quit_button.disabled = true
 	Music.stop()
-	# Give Godot 4.3's audio thread time to release playback before shutdown.
+
 	await get_tree().create_timer(0.1).timeout
 	get_tree().quit()
